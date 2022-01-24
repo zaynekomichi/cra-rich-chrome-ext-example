@@ -1,0 +1,9 @@
+.threelyAddress{
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    text-decoration: dotted;
+    background-color: rgb(92, 177, 252);
+    color: black;
+    border-radius: 7px;
+    padding: 2px;
+}

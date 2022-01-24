@@ -1,71 +1,32 @@
-import { createStore } from 'redux';
-import storeCreatorFactory from 'reduxed-chrome-storage';
-import reducers from './reducers';
-import { setStats } from './actions/marker';
-import { mark, unmark } from './mark';
+import Mark from "mark.js";
 
-let stateJson0;
-let toUnmark = false;
-let stats = false;
 
-const render = (store, tabHidden) => {
-  const o = store.getState();
-  const {account, marker, settings} = o;
-  const state = {
-    account: account && { keywords: account.keywords },
-    marker: marker && { enabled: marker.enabled },
-    settings
-  };
-  const stateJson = JSON.stringify(state);
-  if (stateJson === stateJson0)
-    return false;
-  const toMark = account.keywords && marker.enabled;
-  if (toUnmark) {
-    unmark();
+
+
+export const Change=()=>{
+    let addresses = [];
+    let a = document.getElementsByTagName("mark").length;
+    for(let i=0;i<a;i++){
+      let b = document.getElementsByTagName("mark")[i];
+      document.getElementsByTagName("mark")[i].innerText =`${b.innerText} `;
+      b.id = `ThreelyAddress${i}`
+      addresses.push(b.innerText);
+    }
+    console.log(addresses);
   }
-  stateJson0 = stateJson;
-  if (tabHidden)
-    return false;
-  stats = false;
-  if (!toMark)
-    return false;
-  toUnmark = toMark;
-  const {keywords} = account;
-  const {matchWhole, matchCase} = settings;
-  stats = mark({
-    keywords, matchWhole, matchCase, style: style(settings)
+
+export const Highlight=()=>{
+const threely = new Mark(document.querySelector("body"));
+  threely.unmark({
+    done: ()=>{
+      threely.markRegExp(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/g,{
+        "element":"mark",
+        "className":"threelyAddress",
+      });
+    }
   });
-  updateStats(store);
-  return true;
-};
+}
 
-const style = settings => {
-  const {color, colorBg, bold, underline} = settings;
-  const acc = [];
-  color && acc.push( ['color', color] );
-  colorBg && acc.push( ['background-color', colorBg] );
-  (color || colorBg) && acc.push( ['padding', '0.2em'] );
-  bold && acc.push( ['font-weight', 'bold'] );
-  underline && acc.push( ['text-decoration', 'underline'] );
-  return acc.map( v => v[0] + ':' + v[1] ).join( ';' );
-};
-
-const updateStats = (store) => {
-  stats && store.dispatch(setStats(stats));
-};
-
-(async () => {
-  chrome.runtime.onMessage.addListener( data => {
-    // if current tab received focus, apply mark/unmark operations (if any),
-    // then, if there was no mark operation, update marker stats
-    data && data.id === 'tabFocusPass' &&
-    !render(store) && updateStats(store);
-  });
-
-  const store = await storeCreatorFactory({createStore})(reducers);
-  store.subscribe(() => {
-    render(store, document.hidden);
-  });
-  render(store);
-})();
-
+Highlight();
+Change();
+  
